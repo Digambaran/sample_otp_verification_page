@@ -1,19 +1,36 @@
 import React, { useState } from "react";
 import queryString from "query-string";
+import classnames from "classnames";
 import "./assets/css/main.css";
 import OtpInput from "./components/otpInput";
 import { useInterval } from "./hooks";
+import GreenTick from "./components/greenTick";
+import ErrorCross from "./components/cross";
+
+/**
+ *
+ * @param {{msg:string}} param0
+ * @returns
+ */
+const ErrorMsg = ({ msg }) => (
+  <span className="text-error text-[11px] pt-2 font-medium ">{msg}</span>
+);
 
 export const Sample_otp_verification_page = () => {
   const [code, setCode] = useState("");
   const [seconds, setSeconds] = useState(30);
   const [disableBtn, setDisableBtn] = useState(true);
+  const [errored, setErrored] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const handleOnChange = (code) => {
     if (code.length === 6) {
       setCode(code);
       setDisableBtn(false);
       return;
     }
+    setErrorMsg("");
+    setErrored(false);
     setCode(code);
   };
   const handleSubmit = async (e) => {
@@ -22,19 +39,41 @@ export const Sample_otp_verification_page = () => {
       ...queryString.parse(window.location.search),
       email_verification_code: code,
     };
-    const _j = await fetch(
-      `${
-        process.env.BLOCK_FUNCTION_URL || "http://localhost:5000"
-      }/sample_otp_verification_fn`,
-      {
-        body: JSON.stringify(data),
-        method: "POST",
+    try {
+      const _j = await fetch(
+        `${
+          process.env.BLOCK_FUNCTION_URL || "http://localhost:5000"
+        }/sample_otp_verification_fn`,
+        {
+          body: JSON.stringify(data),
+          method: "POST",
+        }
+      );
+      if (_j.status === 500) {
+        setOtpVerified(false);
+        setErrored(true);
+        setErrorMsg("Something went wrong at our end!");
+        return;
       }
-    );
-    console.log(_j.status);
-    const d = await _j.json();
-    console.log(d);
+      const d = await _j.json();
+      if (_j.status === 200 && d.err) {
+        setOtpVerified(false);
+        setErrored(true);
+        setErrorMsg(d.msg);
+        console.log(d);
+        return;
+      }
+
+      setErrored(false);
+      setOtpVerified(true);
+    } catch (err) {
+      setOtpVerified(false);
+      setErrored(true);
+      setErrorMsg("Something went wrong, check console.");
+      console.log(err);
+    }
   };
+
   useInterval(
     () => {
       setSeconds(seconds - 1);
@@ -47,7 +86,7 @@ export const Sample_otp_verification_page = () => {
       <div className="w-full flex flex-col min-h-screen items-center sm:justify-center pt-16 sm:p-2">
         <div className="w-full sm:max-w-[420px] bg-white sm:border sm:border-mid-gray sm:rounded-sm sm:min-h-0 p-8 sm:p-16 sm:shadow-lg min-h-screen">
           <h1 className="text-lg text-light-black font-bold mb-6">
-            Verify it's you!
+            Verify it is you!
           </h1>
           <div className="text-grey text-[13px] mt-4">
             Enter the 6-Digit code sent to your email
@@ -69,12 +108,30 @@ export const Sample_otp_verification_page = () => {
                   numInputs={6}
                   isInputNum={true}
                   inputStyle="focus:outline-none bg-light-gray focus:placeholder-opacity-0"
-                  containerStyle="flex gap-2 items-center w-full border border-light-gray rounded-sm bg-light-gray px-4 py-2 pr-12 relative"
-                />
-
-                <span className="error-msg-inner text-red-600 text-[11px] pt-2 font-medium">
-                  Invalid verification code! try again or request for new!
-                </span>
+                  containerStyle={classnames(
+                    "flex gap-2 items-center w-full mt-2.5 px-4 py-3 relative bg-light-gray border focus:outline-none rounded-sm text-sm font-almost-bold text-light-black",
+                    {
+                      "border-light-gray": !errored,
+                      "focus:border-primary": !errored,
+                    },
+                    {
+                      "border-error": errored,
+                      "focus:border-error": errored,
+                    }
+                  )}
+                >
+                  {otpVerified && (
+                    <div className={`absolute w-8 h-full right-1 top-3`}>
+                      <GreenTick />
+                    </div>
+                  )}
+                  {!otpVerified && errored && (
+                    <div className={`absolute w-8 h-full right-1 top-3`}>
+                      <ErrorCross />
+                    </div>
+                  )}
+                </OtpInput>
+                {errored && <ErrorMsg msg={errorMsg} />}
               </div>
               <div className="flex flex-col button-wrapper w-full mt-6">
                 <button

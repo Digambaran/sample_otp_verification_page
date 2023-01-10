@@ -361,6 +361,7 @@ class OtpInput extends Component {
         className={!isStyleObject(containerStyle) ? containerStyle : ""}
       >
         {this.renderInputs()}
+        {this.props.children}
       </div>
     );
   }
