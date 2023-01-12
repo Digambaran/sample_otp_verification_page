@@ -12,9 +12,7 @@ import ErrorCross from "./components/cross";
  * @param {{msg:string}} param0
  * @returns
  */
-const ErrorMsg = ({ msg }) => (
-  <span className="text-error text-[11px] pt-2 font-medium ">{msg}</span>
-);
+const ErrorMsg = ({ msg }) => <span className="text-error text-[11px] pt-2 font-medium ">{msg}</span>;
 
 export const Sample_otp_verification_page = () => {
   const [code, setCode] = useState("");
@@ -41,9 +39,7 @@ export const Sample_otp_verification_page = () => {
     };
     try {
       const _j = await fetch(
-        `${
-          process.env.BLOCK_FUNCTION_URL || "http://localhost:5000"
-        }/sample_otp_verification_fn`,
+        `${process.env.BLOCK_FUNCTION_URL || "http://localhost:5000"}/sample_otp_verification_fn`,
         {
           body: JSON.stringify(data),
           method: "POST",
@@ -85,22 +81,15 @@ export const Sample_otp_verification_page = () => {
     <div className="w-full min-h-screen float-left flex sm:block bg-white">
       <div className="w-full flex flex-col min-h-screen items-center sm:justify-center pt-16 sm:p-2">
         <div className="w-full sm:max-w-[420px] bg-white sm:border sm:border-mid-gray sm:rounded-sm sm:min-h-0 p-8 sm:p-16 sm:shadow-lg min-h-screen">
-          <h1 className="text-lg text-light-black font-bold mb-6">
-            Verify it is you!
-          </h1>
+          <h1 className="text-lg text-light-black font-bold mb-6">Verify it is you!</h1>
           <div className="text-grey text-[13px] mt-4">
             Enter the 6-Digit code sent to your email
-            <a
-              className="text-primary cursor-pointer hover:underline underline-offset-4"
-              href="/"
-            ></a>
+            <a className="text-primary cursor-pointer hover:underline underline-offset-4" href="/"></a>
           </div>
           <div className="w-full float-left pb-4 mt-6">
             <form className="w-full float-left mb-0" onSubmit={handleSubmit}>
               <div className="flex flex-col mb-3 otp-container" id="otp-main">
-                <label className="text-black font-almost-bold text-sm">
-                  Verification Code*
-                </label>
+                <label className="text-black font-almost-bold text-sm">Verification Code*</label>
                 <OtpInput
                   value={code}
                   onChange={handleOnChange}
@@ -148,10 +137,7 @@ export const Sample_otp_verification_page = () => {
                       &nbsp;Request new in {seconds}s
                     </a>
                   ) : (
-                    <a
-                      className="text-primary cursor-pointer underline focus:outline-none underline-offset-4"
-                      href=""
-                    >
+                    <a className="text-primary cursor-pointer underline focus:outline-none underline-offset-4" href="">
                       &nbsp;Request new
                     </a>
                   )}
