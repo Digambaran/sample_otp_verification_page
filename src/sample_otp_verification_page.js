@@ -14,9 +14,13 @@ import ErrorCross from "./components/cross";
  */
 const ErrorMsg = ({ msg }) => <span className="text-error text-[11px] pt-2 font-medium ">{msg}</span>;
 
+// const BLOCK_NAME = "SAMPLE_OTP_VERIFICATION_PAGE";
+const currentProcess = { env: process.env };
+const getFromBlockEnv = (name) => currentProcess.env[name];
+
 export const Sample_otp_verification_page = () => {
   const [code, setCode] = useState("");
-  const [seconds, setSeconds] = useState(30);
+  const [seconds, setSeconds] = useState(process.env.RESEND_WAIT_TIME || 30);
   const [disableBtn, setDisableBtn] = useState(true);
   const [errored, setErrored] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
@@ -31,6 +35,21 @@ export const Sample_otp_verification_page = () => {
     setErrored(false);
     setCode(code);
   };
+  const handleResendOtpClick = async (e) => {
+    e.preventDefault();
+    const data = {
+      ...queryString.parse(window.location.search),
+    };
+    setSeconds(process.env.RESEND_WAIT_TIME || 30);
+    try {
+      const _j = await fetch(getFromBlockEnv("RESEND_OTP_URL"), {
+        body: JSON.stringify(data),
+        method: "POST",
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = {
@@ -38,13 +57,10 @@ export const Sample_otp_verification_page = () => {
       email_verification_code: code,
     };
     try {
-      const _j = await fetch(
-        `${process.env.BLOCK_FUNCTION_URL || "http://localhost:5000"}/sample_otp_verification_fn`,
-        {
-          body: JSON.stringify(data),
-          method: "POST",
-        }
-      );
+      const _j = await fetch(getFromBlockEnv("OTP_VERIFICATION_URL"), {
+        body: JSON.stringify(data),
+        method: "POST",
+      });
       if (_j.status === 500) {
         setOtpVerified(false);
         setErrored(true);
@@ -62,6 +78,7 @@ export const Sample_otp_verification_page = () => {
 
       setErrored(false);
       setOtpVerified(true);
+      window.location = process.env.REDIRECT_ON_VERIFIED_TO || window.location;
     } catch (err) {
       setOtpVerified(false);
       setErrored(true);
@@ -132,19 +149,23 @@ export const Sample_otp_verification_page = () => {
                 </button>
                 <p className="w-full text-sm text-grey mt-6">
                   Didn't get code?
-                  {seconds > 0 ? (
+                  {seconds > 0 && !otpVerified ? (
                     <a className="inline-block text-gray underline underline-offset-4">
                       &nbsp;Request new in {seconds}s
                     </a>
                   ) : (
-                    <a className="text-primary cursor-pointer underline focus:outline-none underline-offset-4" href="">
+                    <a
+                      className="text-primary cursor-pointer underline focus:outline-none underline-offset-4"
+                      href=""
+                      onClick={handleResendOtpClick}
+                    >
                       &nbsp;Request new
                     </a>
                   )}
                 </p>
                 <a
                   className="text-primary text-sm font-heavy cursor-pointer underline underline-offset-4 mt-6"
-                  href="http://localhost:4009"
+                  href={process.env.SIGNUP_PAGE_URL}
                 >
                   Change E-mail
                 </a>
